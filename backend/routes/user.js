@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const { client } = require("../db");
+const { pool } = require("../db");
 const jwt = require("jsonwebtoken");
 const passKey = require('../config.js').JWT_SECRET_KEY;
 const  { validator } = require("../middleware");
@@ -26,13 +26,13 @@ router.post('/signup',validator, async function(req, res){
 
     // user.save();
     // await client.connect();
-    const lookup = await client.query(`
+    const lookup = await pool.query(`
         SELECT * FROM users WHERE username = $1 OR email = $2;
     `, [username, email])
     if(lookup.row_length > 0){
         return res.sendStatus(409);
     }
-    await client.query(`
+    await pool.query(`
         INSERT INTO users (username, email, password)
         VALUES ($1, $2, $3);
     `, [username, email, password]);
@@ -51,7 +51,7 @@ router.post('/login', async function(req, res){
     // const fin = check1 == null ? check2 : check1;
 
     // client.connect();
-    const lookup = await client.query(`
+    const lookup = await pool.query(`
         SELECT * FROM users WHERE (username = $1 OR email = $1) AND password = $2;
     `, [email, password])
     // client.end();

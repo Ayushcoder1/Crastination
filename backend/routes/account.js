@@ -1,7 +1,7 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware');
 // const { TODO } = require('../db');
-const { client } = require('../db.js');
+const { pool } = require('../db.js');
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.post('/add', authMiddleware, async (req, res) => {
     //   'todos.id': todo.id
     // });
     // await client.connect();
-    const lookup = await client.query(`
+    const lookup = await pool.query(`
       SELECT * FROM users u JOIN todo t on u.id = t.user_id
       WHERE u.email = $1 and t.id = $2;
     `, [username, todo.id])
@@ -29,7 +29,7 @@ router.post('/add', authMiddleware, async (req, res) => {
     //   { upsert: true }
     // );
 
-    await client.query(`
+    await pool.query(`
       INSERT INTO todo (user_id, id, title, description, status, deadline)
       VALUES ((SELECT id FROM users WHERE email = $1), $2, $3, $4, $5, $6);
     `, [username, todo.id, todo.title, todo.description, todo.Status, todo.deadline]);
@@ -69,7 +69,7 @@ router.put('/edit', authMiddleware, async (req, res) => {
     //     }
     //   },
     // );
-    await client.query(`
+    await pool.query(`
       UPDATE todo
       SET title = $1, description = $2, status = $3, deadline = $4
       WHERE id = $5 AND user_id = (SELECT id FROM users WHERE email = $6);
@@ -88,7 +88,7 @@ router.delete('/delete', authMiddleware, async (req, res) => {
   // );
   // await client.connect();
   // console.log(id);
-  await client.query(`
+  await pool.query(`
     DELETE FROM todo
     WHERE id = $1 AND user_id = (SELECT id FROM users WHERE email = $2);
   `, [id, username]);
@@ -106,7 +106,7 @@ router.put('/done', authMiddleware, async (req, res) => {
   // );
   const status = req.headers.status === 'true' ? true : false;
   // await client.connect();
-  await client.query(`
+  await pool.query(`
     UPDATE todo
     SET status = $1 WHERE id = $2 AND user_id = (SELECT id FROM users WHERE email = $3);
   `, [status, id, username]);
@@ -120,7 +120,7 @@ router.get('/todos', authMiddleware, async (req, res) => {
   // const data = await TODO.findOne({username : username});
 
   // await client.connect();
-  const data = await client.query(`
+  const data = await pool.query(`
     SELECT * FROM todo
     WHERE user_id = (SELECT id from users WHERE email = $1);
   `, [username]);
@@ -158,7 +158,7 @@ router.post('/filter', authMiddleware, async(req, res) => {
   // console.log(quantity);
   // console.log(filter);
   if(quantity != 'deadline'){
-    data = await client.query(`
+    data = await pool.query(`
     SELECT * FROM todo
     WHERE user_id = (SELECT id from users WHERE email = $1)
     AND ${quantity} LIKE $2;
@@ -171,7 +171,7 @@ router.post('/filter', authMiddleware, async(req, res) => {
     
     // console.log(start, end);
 
-    data = await client.query(`
+    data = await pool.query(`
     SELECT * FROM todo
     WHERE user_id = (SELECT id from users WHERE email = $1)
     AND ${quantity} between $2 AND $3;
