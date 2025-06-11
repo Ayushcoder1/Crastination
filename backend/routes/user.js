@@ -1,10 +1,10 @@
 const express = require('express');
-
 const router = express.Router();
 const { pool } = require("../db");
 const jwt = require("jsonwebtoken");
 const passKey = require('../config.js').JWT_SECRET_KEY;
 const  { validator } = require("../middleware");
+
 
 
 router.post('/signup',validator, async function(req, res){
