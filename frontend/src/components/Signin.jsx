@@ -1,23 +1,24 @@
 import { Link, useNavigate } from 'react-router-dom'
 import todoImg from '../assets/todo.png';
-import { useRef } from 'react';
-import { session_Atom } from '../store/atoms';
-import { useSetAtom } from 'jotai';
+import { useRef, useState } from 'react';
+import { session_Atom, tokenAtom, warningAtom } from '../store/atoms';
+import { useAtomValue, useSetAtom } from 'jotai';
 
 function Signin({isSignin}){
-    const warning = null;
+    const warning = useAtomValue(warningAtom);
     const usernameRef = useRef();
     const passwordRef = useRef();
     const nameRef = useRef();
     const navigate = useNavigate();
     const server = useSetAtom(session_Atom);
+    const getToken = useAtomValue(tokenAtom);
 
     function session(){
         const username = usernameRef.current.value;
         const password = passwordRef.current.value;
         const name = nameRef.current ? nameRef.current.value : null;
         server({ username, password, name });
-        navigate('/account/todos');
+        if(getToken) navigate('/account/todos');
     }
     return (
         <div className='flex flex-col items-center'>
@@ -29,7 +30,7 @@ function Signin({isSignin}){
 
                 {
                     warning &&
-                    <p className='text-red-600 text-center text-sm'>{warning}</p>
+                    <p className='text-red-600 text-sm'>{warning}</p>
                 }
 
                 {

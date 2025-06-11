@@ -15,15 +15,7 @@ function Todos() {
 
   useEffect(() => {
     get_data();
-    // console.log('useEffect called');
     return () => {
-      // console.log('cleanup called');
-      // sessionStorage.removeItem('token');
-      // setTodos([]);
-      // setToken(null);
-      // // console.log(token);
-      // setEditMode(null);
-      // get_data();
     };
   }, []);
 

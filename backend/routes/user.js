@@ -29,8 +29,8 @@ router.post('/signup',validator, async function(req, res){
     const lookup = await pool.query(`
         SELECT * FROM users WHERE username = $1 OR email = $2;
     `, [username, email])
-    if(lookup.row_length > 0){
-        return res.sendStatus(409);
+    if(lookup.rowCount > 0){
+        return res.status(409).json("Duplicate User");
     }
     await pool.query(`
         INSERT INTO users (username, email, password)
@@ -55,8 +55,8 @@ router.post('/login', async function(req, res){
         SELECT * FROM users WHERE (username = $1 OR email = $1) AND password = $2;
     `, [email, password])
     // client.end();
-    if(lookup.row_length == 0){
-        return res.sendStatus(409);
+    if(lookup.rowCount == 0){
+        return res.status(409).json("Incorrect Username of password");
     }
 
     var token = jwt.sign({username: lookup.rows[0].email}, passKey);

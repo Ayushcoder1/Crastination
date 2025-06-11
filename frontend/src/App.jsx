@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import Login from './Login.jsx';
 import Signup from './Signup.jsx';
@@ -17,6 +17,7 @@ function App() {
           <Route path="/account/analyse" element={<Analyse />} />
           <Route path="/user/login"      element={<Login />}   />
           <Route path="/user/signup"     element={<Signup />}  />
+          <Route path="*" element={<Navigate to="/user/login" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
