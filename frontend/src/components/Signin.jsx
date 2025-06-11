@@ -11,14 +11,19 @@ function Signin({isSignin}){
     const nameRef = useRef();
     const navigate = useNavigate();
     const server = useSetAtom(session_Atom);
-    const getToken = useAtomValue(tokenAtom);
 
-    function session(){
+    // const getToken = useAtomValue(tokenAtom);
+
+    async function session(){
         const username = usernameRef.current.value;
         const password = passwordRef.current.value;
         const name = nameRef.current ? nameRef.current.value : null;
-        server({ username, password, name });
-        if(getToken) navigate('/account/todos');
+        await server({ username, password, name });
+        
+        const newToken = sessionStorage.getItem('token');
+        if (newToken) {
+            navigate('/account/todos');
+        }
     }
     return (
         <div className='flex flex-col items-center'>

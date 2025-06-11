@@ -7,8 +7,8 @@ export const filteredAtom = atom([]);
 
 export const editModeAtom = atom(null);
 
-// const dns = "http://ec2-13-235-78-242.ap-south-1.compute.amazonaws.com"
-const dns = "http://localhost:3000"
+const dns = "http://ec2-13-235-78-242.ap-south-1.compute.amazonaws.com"
+// const dns = "http://localhost:3000"
 
 export const tokenAtom = atom(sessionStorage.getItem('token') || null);
 
