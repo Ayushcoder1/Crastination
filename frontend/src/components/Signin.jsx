@@ -18,7 +18,7 @@ function Signin({isSignin}){
         const username = usernameRef.current.value;
         const password = passwordRef.current.value;
         const name = nameRef.current ? nameRef.current.value : null;
-        server({ isSignin, username, password, name });
+        await server({ isSignin, username, password, name });
         
         const newToken = sessionStorage.getItem('token');
         if (newToken) {
