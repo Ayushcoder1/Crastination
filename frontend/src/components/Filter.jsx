@@ -11,7 +11,7 @@ function Filter() {
   const placeholderText =
     quantity === "Title" || quantity === "Description"
       ? "Search text…"
-      : "DD-MM-YYYY to DD-MM-YYYY";
+      : quantity == "Date" ? "DD-MM-YYYY to DD-MM-YYYY" : "true/false";
 
   const handleSubmit = () => {
     fetch_filter_data(inputRef.current.value, quantity);
@@ -46,7 +46,7 @@ function Filter() {
 
         {open && (
           <ul className="absolute top-full mt-2 w-40 bg-white rounded-md shadow-lg z-10">
-            {["Title", "Description", "Deadline"].map((opt) => (
+            {["Title", "Description", "Deadline", "Status"].map((opt) => (
               <li
                 key={opt}
                 onClick={() => {

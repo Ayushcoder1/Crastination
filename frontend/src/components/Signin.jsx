@@ -18,7 +18,7 @@ function Signin({isSignin}){
         const username = usernameRef.current.value;
         const password = passwordRef.current.value;
         const name = nameRef.current ? nameRef.current.value : null;
-        await server({ username, password, name });
+        server({ isSignin, username, password, name });
         
         const newToken = sessionStorage.getItem('token');
         if (newToken) {
@@ -41,12 +41,12 @@ function Signin({isSignin}){
                 {
                     !isSignin && 
                     <div>
-                        <p className='text-lg font-semibold text-black mb-2'>Name</p>
+                        <p className='text-lg font-semibold text-black mb-2'>Username</p>
                         <input ref={nameRef} type="text" placeholder='Hello there' className='border-black border-2 w-80 rounded-sm p-2 mb-2 bg-white'/>
                     </div>
                 }
                 <div>
-                    <p className='text-lg font-semibold text-black'>Username</p>
+                    <p className='text-lg font-semibold text-black'>Email</p>
                     <input ref={usernameRef} type="text" placeholder='abc@gmail.com' className='border-black border-2 w-80 rounded-sm p-2 mb-2 bg-white'/>
                 </div>
                 <div>

@@ -1,11 +1,11 @@
 const express = require('express');
-const { authMiddleware } = require('../middleware');
+const { authMiddleware, todoValidator } = require('../middleware');
 // const { TODO } = require('../db');
 const { pool } = require('../db.js');
 
 const router = express.Router();
 
-router.post('/add', authMiddleware, async (req, res) => {
+router.post('/add', authMiddleware, todoValidator, async (req, res) => {
     const todo = req.body;
     const username = req.user;
     // const lookup = await TODO.findOne({
@@ -20,7 +20,7 @@ router.post('/add', authMiddleware, async (req, res) => {
 
     
     if(lookup.row_length > 0){
-      return res.sendStatus(409);
+      return res.status(409).json({msg : "Duplicate ID, enter different ID."});
     }
 
     // await TODO.updateOne(
@@ -153,15 +153,22 @@ function getsinceEpoch(dateStr){
 router.post('/filter', authMiddleware, async(req, res) => {
   const username = req.user;
   const filter = req.body.filter;
-  const quantity =  req.body.quantity.toLowerCase();
+  const quantity =  req.body.quantity == "Status" ? "Status" : req.body.quantity.toLowerCase();
   let data;
   // console.log(quantity);
   // console.log(filter);
-  if(quantity != 'deadline'){
+  if(quantity == 'Status'){
     data = await pool.query(`
     SELECT * FROM todo
     WHERE user_id = (SELECT id from users WHERE email = $1)
-    AND ${quantity} LIKE $2;
+    AND ${quantity} = $2;
+  `,[username, filter.toLowerCase()]);
+  }
+  else if(quantity != 'deadline'){
+    data = await pool.query(`
+    SELECT * FROM todo
+    WHERE user_id = (SELECT id from users WHERE email = $1)
+    AND ${quantity} ILIKE $2;
   `,[username, `%${filter}%`]);
   }
   else{

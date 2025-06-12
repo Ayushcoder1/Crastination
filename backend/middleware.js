@@ -10,7 +10,7 @@ function validator(req, res, next){
     })
     const check = schema.safeParse(req.body);
     if(!check.success){
-        return res.status(403).json({msg : "Invalid Username or Password!"});
+        return res.status(403).json({msg : "Please enter valid email and password (min length : 6)."});
     }
     next();
 }
@@ -27,7 +27,23 @@ function authMiddleware(req, res, next) {
   }
 }
 
+function todoValidator(req, res, next){
+  const schema = zod.object({
+    id : zod.string().min(1),
+    title : zod.string().min(1),
+    description : zod.string().min(1),
+    deadline : zod.number().min(new Date().getTime()),
+    Status : zod.boolean()
+  })
+  const check = schema.safeParse(req.body)
+  if(!check.success){
+      return res.status(403).json({msg : "Invalid entries, please enter valid entries."});
+  }
+  next();
+}
+
 module.exports = {
     validator,
-    authMiddleware
+    authMiddleware,
+    todoValidator
 };

@@ -7,8 +7,8 @@ export const filteredAtom = atom([]);
 
 export const editModeAtom = atom(null);
 
-const dns = "http://ec2-13-235-78-242.ap-south-1.compute.amazonaws.com"
-// const dns = "http://localhost:3000"
+// const dns = "http://ec2-13-235-78-242.ap-south-1.compute.amazonaws.com"
+const dns = "http://localhost:3000"
 
 export const tokenAtom = atom(sessionStorage.getItem('token') || null);
 
@@ -37,6 +37,7 @@ export const get_data_Atom = atom(
 export const add_todo_Atom = atom(
   null,
   async (get, set, newTodo) => {
+    set(warningAtom, null);
     const token = get(tokenAtom);
     if (token === null) {
       alert('log in please');
@@ -51,7 +52,9 @@ export const add_todo_Atom = atom(
       body: JSON.stringify(newTodo),
     });
     if (res.status !== 200) {
-      console.log('A todo with similar ID already exists, try again.');
+      const data = await res.json();
+      // console.log('Invalid entries, try again.');
+      set(warningAtom, data.msg);
       return;
     }
     set(get_data_Atom);
@@ -102,8 +105,8 @@ export const delete_todo_Atom = atom(
 
 export const session_Atom = atom(
   null,
-  async (get, set, { username, password, name=null }) => {
-    const path = name ? 'signup' : 'login';
+  async (get, set, {isSignin, username, password, name=null }) => {
+    const path = !isSignin ? 'signup' : 'login';
     set(warningAtom, null);
     // console.log('here', { username, password, name });
     const res = await fetch(`${dns}/user/${path}`, {
@@ -120,11 +123,12 @@ export const session_Atom = atom(
       // navigate('/account/todos');
     } else {
       // console.error('Login failed:', data.message);
-      if(path == 'login') set(warningAtom, "Incorrect Username or password.");
-      else{
-        if(res.status == 409) set(warningAtom, "User with same credential already present.");
-        else set(warningAtom, "Enter a valid email and password(minimum length:6).")
-      }
+      // if(path == 'login') set(warningAtom, "Incorrect Username or password.");
+      // else{
+      //   if(res.status == 409) set(warningAtom, "User with same credential already present.");
+      //   else set(warningAtom, "Enter a valid email and password(minimum length:6).")
+      // }
+      set(warningAtom, data.msg);
     }
   }
 );
