@@ -1,11 +1,17 @@
 import { atom } from 'jotai';
-import { useNavigate } from 'react-router-dom';
 
 export const todosAtom = atom([]);
 
 export const filteredAtom = atom([]);
 
 export const editModeAtom = atom(null);
+
+export const filtersAtom = atom({
+  'Title' : [],
+  'Description' : [],
+  'Status' : [],
+  'Deadline' : [],
+});
 
 const dns = "http://ec2-13-235-78-242.ap-south-1.compute.amazonaws.com"
 // const dns = "http://localhost:3000"
@@ -58,6 +64,7 @@ export const add_todo_Atom = atom(
       return;
     }
     set(get_data_Atom);
+    set(fetch_filter_data_atom);
   }
 );
 
@@ -79,6 +86,7 @@ export const toggle_todo_Atom = atom(
       },
     });
     set(get_data_Atom);
+    set(fetch_filter_data_atom);
   }
 );
 
@@ -100,6 +108,7 @@ export const delete_todo_Atom = atom(
       body: JSON.stringify({ id : id }),
     });
     set(get_data_Atom);
+    set(fetch_filter_data_atom);
   }
 );
 
@@ -146,14 +155,16 @@ export const edit_todo_Atom = atom(
         body: JSON.stringify(content)
     });
     set(get_data_Atom);
+    set(fetch_filter_data_atom);
     set(editModeAtom, null);
   }
 )
 
 export const fetch_filter_data_atom = atom(
   null,
-  async (get, set, filter, quantity) => {
+  async (get, set) => {
     const token = get(tokenAtom);
+    const filters = get(filtersAtom);
     // console.log(token);
     const res = await fetch(`${dns}/account/filter`, {
         method : 'POST',
@@ -161,7 +172,7 @@ export const fetch_filter_data_atom = atom(
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
         },
-        body: JSON.stringify({filter : filter, quantity : quantity})
+        body: JSON.stringify({filters : filters})
     });
     const data = await res.json();
     // console.log(data);

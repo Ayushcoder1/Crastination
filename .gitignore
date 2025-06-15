@@ -5,6 +5,7 @@ backend/node_modules/
 
 # Production build outputs
 build/
+dist/
 
 # Logs
 *.log

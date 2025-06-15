@@ -1,72 +1,88 @@
-import { useSetAtom } from "jotai";
-import { useRef, useState } from "react";
-import { fetch_filter_data_atom } from "../store/atoms";
+import { useAtom, useSetAtom } from "jotai";
+import { useRef, useState, useEffect } from "react";
+import { fetch_filter_data_atom, filtersAtom } from "../store/atoms";
+import Input from "./Input";
+import Deadline_Input from "./Deadline_Input";
+import FilterDropdown from "./FilterDropdown";
+import FilterDisplay from "./FilterDisplay";
 
 function Filter() {
   const [quantity, setQuantity] = useState("Title");
-  const [open, setOpen] = useState(false);
+  const [filters, setFilters] = useAtom(filtersAtom)
   const inputRef = useRef();
+  const d1 = useRef();
+  const d2 = useRef();
   const fetch_filter_data = useSetAtom(fetch_filter_data_atom);
 
   const placeholderText =
     quantity === "Title" || quantity === "Description"
       ? "Search text…"
-      : quantity == "Date" ? "DD-MM-YYYY to DD-MM-YYYY" : "true/false";
+      :"true/false";
+
+
+  useEffect(() => {
+    fetch_filter_data();
+  }, [filters]);
 
   const handleSubmit = () => {
-    fetch_filter_data(inputRef.current.value, quantity);
+    let val;
+    if(quantity == "Deadline"){
+      // const date1 = new Date(d1.current.value).getTime();
+      // const date2 = new Date(d2.current.value).getTime();
+      const date = d1.current.value + "~" + d2.current.value;
+      val = date;
+    }
+    else val = inputRef.current.value;
+    if(val == "") return;
+    setFilters(prev => {
+      if (prev[quantity].includes(val)) return prev;
+
+      return {
+        ...prev,                                    
+        [quantity]: [...prev[quantity], val],
+      };
+    });
+    // inputRef.current.value = "";
+  };
+
+  const deleteFilter = (key, val) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: prev[key].filter(item => item !== val),
+    }));
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-black rounded-lg shadow-lg text-lg font-serif">
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder={placeholderText}
-        className="flex-1 px-3 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
-      />
+    <div>
+      <div className="flex justify-between items-center gap-4 p-4 bg-black rounded-lg shadow-lg text-lg font-serif">
+        {
+          quantity != 'Deadline' &&
+          <Input inputRef={inputRef} placeholderText={placeholderText}/>
+        }
+        {
+          quantity == 'Deadline' &&
+          <Deadline_Input d1={d1} d2={d2} />
+        }
 
-      <div className="relative">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center px-4 py-2 bg-amber-100 rounded-full hover:bg-amber-200 transition"
-        >
-          {quantity}
-          <svg
-            className={`w-4 h-4 ml-2 transform transition-transform ${
-              open ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+        <div className="flex gap-4">
+          <div className="relative">
+            <FilterDropdown setQuantity={setQuantity} quantity={quantity}/>
+          </div>
 
-        {open && (
-          <ul className="absolute top-full mt-2 w-40 bg-white rounded-md shadow-lg z-10">
-            {["Title", "Description", "Deadline", "Status"].map((opt) => (
-              <li
-                key={opt}
-                onClick={() => {
-                  setQuantity(opt);
-                  setOpen(false);
-                }}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-              >
-                {opt}
-              </li>
-            ))}
-          </ul>
-        )}
+          <button
+            onClick={handleSubmit}
+            className="px-5 py-2 bg-amber-100 rounded-full hover:bg-amber-200 transition">
+            Add
+          </button>
+        </div>
       </div>
 
-      <button
-        onClick={handleSubmit}
-        className="px-5 py-2 bg-amber-100 rounded-full hover:bg-amber-200 transition">
-        Submit
-      </button>
+      <div className=" bg-blue-50 shadow-lg p-2 rounded-xl">
+        <FilterDisplay filters={filters} quantity={"Title"} deleteFilter={deleteFilter} />
+        <FilterDisplay filters={filters} quantity={"Description"} deleteFilter={deleteFilter} />
+        <FilterDisplay filters={filters} quantity={"Status"} deleteFilter={deleteFilter} />
+        <FilterDisplay filters={filters} quantity={"Deadline"} deleteFilter={deleteFilter} />
+      </div>
     </div>
   );
 }

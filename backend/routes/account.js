@@ -150,41 +150,87 @@ function getsinceEpoch(dateStr){
   return msSinceEpoch;
 }
 
+function titleFilter(curr){
+  return "AND title ILIKE $" + String(curr);
+}
+
+function descriptionFilter(curr){
+  return "AND description ILIKE $" + String(curr);
+}
+
+function statusFilter(curr){
+  return "AND status = $" + String(curr);
+}
+
+function deadlineFilter(curr){
+  return "AND deadline BETWEEN $" + String(curr) + " AND $" + String(curr + 1);
+}
+
 router.post('/filter', authMiddleware, async(req, res) => {
   const username = req.user;
-  const filter = req.body.filter;
-  const quantity =  req.body.quantity == "Status" ? "Status" : req.body.quantity.toLowerCase();
-  let data;
+  const filter = req.body.filters;
   // console.log(quantity);
   // console.log(filter);
-  if(quantity == 'Status'){
-    data = await pool.query(`
-    SELECT * FROM todo
-    WHERE user_id = (SELECT id from users WHERE email = $1)
-    AND ${quantity} = $2;
-  `,[username, filter.toLowerCase()]);
-  }
-  else if(quantity != 'deadline'){
-    data = await pool.query(`
-    SELECT * FROM todo
-    WHERE user_id = (SELECT id from users WHERE email = $1)
-    AND ${quantity} ILIKE $2;
-  `,[username, `%${filter}%`]);
-  }
-  else{
-    let [ start, end ] = filter.split("to").map(str => str.trim());
-    start = getsinceEpoch(start);
-    end = getsinceEpoch(end);
+  // if(quantity == 'Status'){
+  //   data = await pool.query(`
+  //   SELECT * FROM todo
+  //   WHERE user_id = (SELECT id from users WHERE email = $1)
+  //   AND ${quantity} = $2;
+  // `,[username, filter.toLowerCase()]);
+  // }
+  // else if(quantity != 'deadline'){
+  //   data = await pool.query(`
+  //   SELECT * FROM todo
+  //   WHERE user_id = (SELECT id from users WHERE email = $1)
+  //   AND ${quantity} ILIKE $2;
+  // `,[username, `%${filter}%`]);
+  // }
+  // else{
+  //   let [ start, end ] = filter.split("to").map(str => str.trim());
+  //   start = getsinceEpoch(start);
+  //   end = getsinceEpoch(end);
     
-    // console.log(start, end);
+  //   // console.log(start, end);
 
-    data = await pool.query(`
-    SELECT * FROM todo
-    WHERE user_id = (SELECT id from users WHERE email = $1)
-    AND ${quantity} between $2 AND $3;
-  `,[username, start, end]);
+  //   data = await pool.query(`
+  //   SELECT * FROM todo
+  //   WHERE user_id = (SELECT id from users WHERE email = $1)
+  //   AND ${quantity} between $2 AND $3;
+  // `,[username, start, end]);
+  // }
+  let query = `SELECT * FROM todo WHERE user_id = (SELECT id FROM users WHERE email = $1)`;
+  let vec = [username];
+  let curr = 2;
+  for(let i of filter['Title']){
+    query = query + ` ` + titleFilter(curr);
+    curr++;
+    vec.push(`%${i}%`);
   }
 
+  for(let i of filter['Description']){
+    query = query + ` ` + descriptionFilter(curr);
+    curr++;
+    vec.push(`%${i}%`);
+  }
+
+  for(let i of filter['Status']){
+    query = query + ` ` + statusFilter(curr);
+    const boolVal = String(i).toLowerCase() === 'true';
+    vec.push(boolVal);
+    curr++;
+  }
+
+  for(let i of filter['Deadline']){
+    query = query + ` ` + deadlineFilter(curr);
+    curr += 2;
+    let [ start, end ] = i.split("~").map(str => str.trim());
+    start = new Date(start).getTime();
+    end = new Date(end).getTime();
+    // console.log(start, end);
+    vec.push(start);
+    vec.push(end);
+  }
+  const data = await pool.query(query, vec);
   if(data.rowCount == 0) return res.json([])
   const todos = data.rows.map(row => ({
     id: row.id,
